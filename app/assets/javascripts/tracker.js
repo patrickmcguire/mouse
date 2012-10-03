@@ -1,27 +1,37 @@
 var sequence = 0;
 var queue = [];
-var session = Math.random();
+var session = Math.floor(Math.random()*9007199254740992)
 
 $(document).ready(function() {
-    $('body').on('mousemove', function(event) {
+    $(document).on('mousemove', function(event) {
         push_queue({
             x: event.pageX,
             y: event.pageY,
             sequence: sequence,
-            session: session
+            session: session,
         });
+        sequence++;
     });
+    window.onbeforeunload = post_queue;
 });
 
 function push_queue(ob) {
     queue.push(ob);
-    if (queue.size > 1000) {
-        var queueback = queue;
-        queue = [];
-        $.ajax({
-            method: 'POST',
-            url: '/movements'
-            data: JSON.stringify(queueback);
-        });
+    $('#queuesize').html(queue.length);
+    if (queue.length > 100) {
+        post_queue();
     }
+}
+
+function post_queue() {
+    var queueback = queue;
+    queue = [];
+    $.ajax({
+        type: 'POST',
+        url: '/positions',
+        data: {
+            positions: JSON.stringify(queueback),
+        },
+        dataType: 'json',
+    });
 }
